@@ -109,8 +109,49 @@
     .legend-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
     .legend-item span { font-size:12px; color:#374151; }
 
-    /* Force tooltip text black */
-    .leaflet-tooltip { color: #111 !important; }
+    /* ── Tooltip hover simple (solo nombre) ── */
+    .leaflet-tooltip {
+      background: #004B81 !important;
+      border: none !important;
+      border-radius: 6px !important;
+      padding: 5px 10px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
+      font-family: 'Segoe UI', Arial, sans-serif !important;
+      color: #fff !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+    }
+    .leaflet-tooltip::before { display: none !important; }
+
+    /* ── Panel de info (click) ── */
+    #info-panel {
+      position: absolute;
+      top: 70px;
+      right: 12px;
+      width: 350px;
+      background: #F7F7F7;
+      border: 2px solid #004B81;
+      border-radius: 12px;
+      padding: 16px 18px 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+      z-index: 800;
+      display: none;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      animation: slideIn 0.18s ease;
+    }
+    #info-panel.visible { display: block; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    #info-panel-close {
+      position: absolute;
+      top: 10px; right: 12px;
+      background: none; border: none;
+      font-size: 17px; color: #7A7A7A;
+      cursor: pointer; line-height: 1; padding: 0;
+    }
+    #info-panel-close:hover { color: #971B2F; }
 
     /* ── Puntos cardinales pills ── */
     .cardinal-pills {
@@ -163,7 +204,7 @@
         <img src="./assets/HorizontalCT.png" alt="Coordinación Tecnológica" style="height:72px !important; max-width:130px !important;"/>
       </div>
     </div>
-    <div class="sidebar-title">Mapa de Efectores Municipales</div>
+    <div class="sidebar-title">Mapa de Atenciones en Salud – Municipalidad de Córdoba</div>
   </div>
 
   <!-- FILTROS -->
@@ -296,6 +337,12 @@
 
 <!-- MAPA -->
 <div id="map"></div>
+
+<!-- PANEL INFO (click en efector) -->
+<div id="info-panel">
+  <button id="info-panel-close" title="Cerrar">✕</button>
+  <div id="info-panel-content"></div>
+</div>
 
 <!-- LEYENDA -->
 <div id="filterLegend" class="map-legend" style="display:none;"></div>

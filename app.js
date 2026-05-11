@@ -85,29 +85,37 @@ const iconCS = L.icon({
   iconUrl: './assets/CS.png',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
-  tooltipAnchor: [0, -32]
+  tooltipAnchor: [16, -16]
 });
 
 const iconDEM = L.icon({
   iconUrl: './assets/DEM.png',
   iconSize: [40, 40],
   iconAnchor: [20, 40],
-  tooltipAnchor: [0, -40]
+  tooltipAnchor: [20, -20]
 });
 
 const iconHosp = L.icon({
   iconUrl: './assets/hospital.png',
   iconSize: [46, 46],
   iconAnchor: [23, 46],
-  tooltipAnchor: [0, -46]
+  tooltipAnchor: [23, -23]
 });
 
 const iconSM = L.icon({
   iconUrl: './assets/SaludMental.png',
   iconSize: [40, 40],
   iconAnchor: [20, 40],
-  tooltipAnchor: [0, -40]
+  tooltipAnchor: [20, -20]
 });
+
+function getTipoColor(tipo) {
+  if (esTipoCS(tipo))   return "#61CE70";
+  if (esTipoDEM(tipo))  return "#0693E3";
+  if (esTipoHosp(tipo)) return "#971B2F";
+  if (esTipoSM(tipo))   return "#E1A113";
+  return "#54595F";
+}
 
 function getIcon(tipo) {
   if (esTipoCS(tipo))   return iconCS;
@@ -198,6 +206,41 @@ const SM_TELEFONOS = {
   "CENTRO MUNICIPAL DE SALUD MENTAL - RAÍCES":     "3513902601",
 };
 
+// ── Panel de info al costado derecho del mapa ────────────────
+const infoPanel    = document.getElementById("info-panel");
+const infoPanelContent = document.getElementById("info-panel-content");
+document.getElementById("info-panel-close").addEventListener("click", () => {
+  infoPanel.classList.remove("visible");
+});
+
+function showInfoPanel(r) {
+  const tipoColor = getTipoColor(r.Tipo);
+  const telSM = SM_TELEFONOS[r.Centro?.trim().toUpperCase()] ?? SM_TELEFONOS[r.Centro?.trim()];
+
+  let html = `<b style="font-size:20px;color:#004B81;display:block;margin-bottom:7px;line-height:1.3;padding-right:20px">${r.Centro}</b>`;
+  if (r.Tipo) html += `<span style="font-size:14px;font-weight:700;color:${tipoColor};background:${tipoColor}22;padding:4px 12px;border-radius:12px;display:inline-block;margin-bottom:9px">${r.Tipo}</span>`;
+  html += `<div style="border-top:1px solid #d0d8e4;margin:8px 0"></div>`;
+  if (r.Direccion) html += `<div style="font-size:15px;color:#54595F;margin-bottom:6px"><b style="color:#004B81">📍</b> ${r.Direccion}</div>`;
+  if (r.Horario)   html += `<div style="font-size:15px;color:#54595F;margin-bottom:6px"><b style="color:#004B81">🕐</b> ${r.Horario}</div>`;
+  if (r.servicios) {
+    html += `<div style="border-top:1px solid #d0d8e4;margin:8px 0"></div>`;
+    html += `<div style="font-size:14px;color:#7A7A7A"><b style="color:#54595F">Servicios:</b> ${r.servicios}</div>`;
+  }
+  if (telSM) {
+    html += `<div style="border-top:1px solid #d0d8e4;margin:8px 0"></div>`;
+    html += `<div style="font-size:16px;color:#0693E3;font-weight:700">📞 ${telSM}</div>`;
+  }
+  if (esTipoCS(r.Tipo)) {
+    html += `<div style="border-top:1px solid #d0d8e4;margin:9px 0"></div>`;
+    html += `<div style="font-size:14px;color:#004B81;font-style:italic">Para más consultas, llamá al CallCenter <b>0800-888-5555</b> o acercate al centro.</div>`;
+  }
+
+  infoPanelContent.innerHTML = html;
+  infoPanel.classList.remove("visible");
+  void infoPanel.offsetWidth; // fuerza re-animación
+  infoPanel.classList.add("visible");
+}
+
 // ── Render marcadores ─────────────────────────────────────────
 // rows: ya viene pre-filtrado (por tipo + zona + selección de centros)
 function renderMarkers(layer, rows) {
@@ -208,19 +251,9 @@ function renderMarkers(layer, rows) {
     const lng = parseFloat(r.Longitud);
     if (!isFinite(lat) || !isFinite(lng)) return;
 
-    let tip = `<b style="font-size:16px;color:#111">${r.Centro}</b>`;
-    if (r.Tipo)      tip += `<br/><span style="color:#222;font-size:13px">${r.Tipo}</span>`;
-    if (r.Direccion) tip += `<br/><span style="font-size:13px;color:#111">Dirección: ${r.Direccion}</span>`;
-    if (r.Horario)   tip += `<br/><span style="font-size:13px;color:#111">Horario: ${r.Horario}</span>`;
-    if (r.servicios) tip += `<br/><span style="font-size:13px;color:#222">Servicios: ${r.servicios}</span>`;
-    if (esTipoCS(r.Tipo)) tip += `<br/><hr style="margin:5px 0;border:none;border-top:1px solid #ddd"/><span style="font-size:13px;color:#1a2e4a;font-style:italic">Por cualquier otra consulta, comunicate al CallCenter <b>0800-888-5555</b> o acercate directamente al Centro de Salud</span>`;
-
-    // Teléfono para efectores de Salud Mental que lo tienen registrado
-    const telSM = SM_TELEFONOS[r.Centro?.trim().toUpperCase()] ?? SM_TELEFONOS[r.Centro?.trim()];
-    if (telSM) tip += `<br/><span style="font-size:13px;color:#111">📞 Teléfono: <b>${telSM}</b></span>`;
-
     L.marker([lat, lng], { icon: getIcon(r.Tipo) })
-     .bindTooltip(tip, { sticky: true, opacity: 0.97, maxWidth: 280 })
+     .bindTooltip(r.Centro, { sticky: false, opacity: 1, direction: 'right' })
+     .on('click', () => showInfoPanel(r))
      .addTo(layer);
     count++;
   });
