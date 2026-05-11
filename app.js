@@ -399,6 +399,9 @@ function applyFilter() {
   const nHosp = mostrarHosp ? renderMarkers(layerHosp, rowsHosp) : (layerHosp.clearLayers(), 0);
   const nSM   = mostrarSM   ? renderMarkers(layerSM,   rowsSM)   : (layerSM.clearLayers(),   0);
 
+  // Cerrar el panel si el efector que muestra ya no está visible en el mapa
+  infoPanel.classList.remove("visible");
+
   toggleLayer(layerCS,   nCS   > 0);
   toggleLayer(layerDEM,  nDEM  > 0);
   toggleLayer(layerHosp, nHosp > 0);
